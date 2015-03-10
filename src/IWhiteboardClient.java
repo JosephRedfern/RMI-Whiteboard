@@ -6,4 +6,9 @@ import java.rmi.RemoteException;
  */
 public interface IWhiteboardClient extends Remote {
     public void sendMessage(String message) throws RemoteException;
+    public String getName() throws RemoteException;
+    public void setName(String name) throws RemoteException;
+    public double pingClient() throws RemoteException;
+    public void retrieveShape(IWhiteboardItem shape) throws RemoteException;
+    public ICommunicationContext  getContext() throws RemoteException;
 }

@@ -1,9 +1,14 @@
+import java.awt.*;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.server.ServerNotActiveException;
+import java.util.ArrayList;
 
 /**
  * Created by joe on 14/02/15.
  */
 public interface IWhiteboardServer extends Remote{
     public ICommunicationContext register(IWhiteboardClient client) throws RemoteException;
+    public void addShape(IWhiteboardClient client, Shape shape) throws RemoteException;
+    public ArrayList<IWhiteboardItem> getShapes() throws RemoteException;
 }

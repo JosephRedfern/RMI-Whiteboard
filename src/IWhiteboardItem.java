@@ -10,4 +10,5 @@ public interface IWhiteboardItem extends Remote{
     public Shape getShape() throws RemoteException;
     public Date getCreationTime() throws RemoteException;
     public IWhiteboardClient getOwner() throws RemoteException;
+    public Color getColour() throws RemoteException;
 }

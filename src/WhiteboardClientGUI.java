@@ -1,58 +1,73 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.rmi.RemoteException;
-import java.util.Random;
 
 /**
- * Created by joe on 20/02/15.
+ * Created by joe on 10/03/15.
  */
-public class WhiteboardClientGUI {
+public class WhiteboardClientGUI implements IWhiteboardItemListener{
 
-    private IWhiteboardClient client;
-    private JTextField nameField;
-    private JButton nameApplyField;
-    private JPanel container;
-    private JButton randomRectangleButton;
-    private JPanel panelHolder;
-    private WhiteboardPanel whiteboardPanel;
+    IWhiteboardClient client;
+    private JPanel panel1;
+    private JPanel boardContainer;
+    private JButton getShapes;
+    private JPanel buttonContainer;
+    private JButton clearMineButton;
+    private WhiteboardPanel panel;
 
-    public WhiteboardClientGUI(IWhiteboardClient client) throws RemoteException {
-
+    public WhiteboardClientGUI(IWhiteboardClient client) throws RemoteException{
         JFrame frame = new JFrame();
-        frame.add(container);
-        frame.setVisible(true);
-        frame.setSize(500, 500);
-
         this.client = client;
+        client.addItemListener(this);
 
-        this.whiteboardPanel = new WhiteboardPanel(this.client.getContext().getShapes());
-        container.add(this.whiteboardPanel);
-        //this.panelHolder.add(wbPanel);
+        getShapes.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e){
+                                                WhiteboardClientGUI.this.resync();
+                                            }
+                                        });
 
-        this.nameApplyField.addActionListener(new ActionListener() {
+        panel = new WhiteboardPanel(client.getContext().getShapes());
+        panel.addMouseListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void mousePressed(MouseEvent e) {
                 try {
-                    WhiteboardClientGUI.this.client.setName(WhiteboardClientGUI.this.nameField.getText());
-                } catch (RemoteException err) {
-                    System.err.println("[!] Error talking to remote server");
+                    WhiteboardClientGUI.this.client.getContext().addShape(new Rectangle(e.getX(), e.getY(), 50, 50), new Color(255, 255, 255));
+                }catch(RemoteException err){
+                    err.printStackTrace();
                 }
             }
         });
 
-        this.randomRectangleButton.addActionListener(new ActionListener() {
+        boardContainer.add(panel);
+
+        frame.add(panel1);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+        frame.setSize(200, 200);
+        clearMineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Shape shape = new Rectangle((int) Math.floor(Math.random() * WhiteboardClientGUI.this.whiteboardPanel.getHeight()), (int) Math.floor(Math.random() * WhiteboardClientGUI.this.whiteboardPanel.getWidth()), (int) Math.floor(Math.random() * WhiteboardClientGUI.this.whiteboardPanel.getHeight()), (int) Math.floor(Math.random() * WhiteboardClientGUI.this.whiteboardPanel.getWidth()));
                 try {
-                    WhiteboardClientGUI.this.client.getContext().addShape(shape);
-                } catch (RemoteException err) {
-                    System.err.println("Couldn't comm with remote server");
+                    WhiteboardClientGUI.this.client.getContext().clearShapes();
+                }catch(RemoteException err){
+                    err.printStackTrace();
                 }
             }
         });
+    }
 
+    public void receiveShape(IWhiteboardItem item){
+        panel.addItem(item);
+        System.out.println("~~~~~~~~~~~~> GOT SHAPE (in WhiteboardClientGUI)!!!");
+    }
+
+    public void resync(){
+        try {
+            panel.updateShapes(this.client.getContext().getShapes());
+        }catch(RemoteException err){
+            err.printStackTrace();
+        }
     }
 }

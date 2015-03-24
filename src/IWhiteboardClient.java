@@ -11,4 +11,6 @@ public interface IWhiteboardClient extends Remote {
     public double pingClient() throws RemoteException;
     public void retrieveShape(IWhiteboardItem shape) throws RemoteException;
     public ICommunicationContext  getContext() throws RemoteException;
+    public void addItemListener(IWhiteboardItemListener listener) throws RemoteException;
+    public void resync() throws RemoteException;
 }

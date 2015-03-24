@@ -12,7 +12,6 @@ public class ServerApp {
     public static void main(String args[]){
         try{
             WhiteboardServer server = new WhiteboardServer();
-            System.out.printf("Server object hash (server-side): %s%n", server.hashCode());
             Registry reg = LocateRegistry.createRegistry(SERVER_PORT);
 
             System.out.printf("[+] Created local registry%n");

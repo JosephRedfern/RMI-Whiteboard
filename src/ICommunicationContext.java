@@ -8,6 +8,7 @@ import java.util.ArrayList;
  */
 public interface ICommunicationContext extends Remote{
     public void sendMessage(String s) throws RemoteException;
-    public void addShape(Shape shape) throws RemoteException;
+    public void addShape(Shape shape, Color colour) throws RemoteException;
     public ArrayList<IWhiteboardItem> getShapes() throws RemoteException;
+    public void clearShapes() throws RemoteException;
 }

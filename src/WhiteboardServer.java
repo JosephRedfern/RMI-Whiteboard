@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RemoteException;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboardServer, Serializable{
@@ -15,7 +16,7 @@ public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboard
 
     public WhiteboardServer() throws RemoteException{
         super();
-        this.clientManager = new WhiteboardClientManager();
+        this.clientManager = new WhiteboardClientManager(this);
         this.shapes = new ArrayList<IWhiteboardItem>();
     }
 
@@ -24,6 +25,7 @@ public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboard
             throw new IllegalStateException(String.format("Client %s has already been registered", c.toString()));
 
         this.clientManager.addClient(c);
+
         ICommunicationContext clientContext = new CommunicationContext(c, this);
         System.out.printf("[+] Registered client %s%n", c.toString());
         printClients();
@@ -62,8 +64,6 @@ public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboard
         }
     }
 
-
-
     /***
      * Remove all IWhiteboardItems belonging to a particular client.
      * @param client
@@ -77,13 +77,34 @@ public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboard
             }
         }
 
-        globalResync(); //resync all clients
+        globalShapeResync(); //resyncShapes all clients
     }
 
-    private void globalResync(){
+    public void clearAllShapes(IWhiteboardClient requestor){
+        try {
+            System.out.printf("[!] Removing All Items, as requested by %s%n", requestor.getName());
+            this.shapes = new ArrayList<IWhiteboardItem>();
+            globalShapeResync();
+        }catch(RemoteException err){
+            System.err.printf("[!] Error removing all items%n");
+            err.printStackTrace();
+        }
+    }
+
+    private void globalShapeResync(){
         for(IWhiteboardClient client : clientManager){
             try {
-                client.resync();
+                client.resyncShapes();
+            }catch(RemoteException err){
+                err.printStackTrace();
+            }
+        }
+    }
+
+    public void globalClientNameListResync(){
+        for(IWhiteboardClient client : clientManager){
+            try{
+                client.resyncClientNameList();
             }catch(RemoteException err){
                 err.printStackTrace();
             }
@@ -96,5 +117,19 @@ public class WhiteboardServer extends UnicastRemoteObject implements IWhiteboard
      */
     public ArrayList<IWhiteboardItem> getShapes(){
         return this.shapes;
+    }
+
+    /***
+     * Get a list of all connected clients, by name.
+     * @return ArrayList of client friendly names.
+     * @throws RemoteException
+     */
+    public ArrayList<String> getClientNameList() throws RemoteException{
+        ArrayList<String> clientNames = new ArrayList<String>();
+        for(IWhiteboardClient client : this.clientManager){
+            clientNames.add(client.getName());
+        }
+
+        return clientNames;
     }
 }

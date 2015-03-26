@@ -7,5 +7,5 @@ import java.util.ArrayList;
  */
 public interface IWhiteboardItemListener {
     public void receiveShape(IWhiteboardItem shape);
-    public void resync();
+    public void resyncShapes();
 }

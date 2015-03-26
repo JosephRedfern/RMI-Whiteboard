@@ -2,8 +2,9 @@
  * Created by joe on 14/02/15.
  */
 
-import java.awt.*;
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
@@ -14,15 +15,15 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
     private IWhiteboardServer server;
     private ICommunicationContext context;
     private String name;
-    private ArrayList<IWhiteboardItemListener> listeners;
+    private ArrayList<IWhiteboardItemListener> itemListeners;
+    private ArrayList<IWhiteboardClientListener> clientListeners;
 
     private static final long serialVersionUID = 12351412354525L;
 
-    public static void main(String args[]) throws Exception //TODO: specific exception handling
-    {
+    public static void main(String args[]) throws RemoteException, MalformedURLException, NotBoundException, ServerNotActiveException {
         String serverAddress = "//127.0.0.1/Whiteboard";
 
-        if(args.length > 1){
+        if(args.length > 0){
             serverAddress = args[0];
         }
 
@@ -45,7 +46,9 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
     public WhiteboardClient(IWhiteboardServer server) throws RemoteException, ServerNotActiveException{
         super();
 
-        this.listeners = new ArrayList<IWhiteboardItemListener>();
+        this.itemListeners = new ArrayList<IWhiteboardItemListener>();
+        this.clientListeners = new ArrayList<IWhiteboardClientListener>();
+
         try {
             this.context = server.register(this);
             System.out.println("[+] Registered with remote sever");
@@ -78,7 +81,14 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
      * @param name
      */
     public void setName(String name){
+        String oldName = this.name;
         this.name = name;
+        try {
+            this.getContext().notifyOfClientNameChange();
+        }catch(RemoteException err){
+            System.err.println("[!] Name Change failed, remote exception occured.");
+            this.name = oldName; //try and prevent out-of-sync.
+        }
     }
 
     /***
@@ -88,7 +98,7 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
     @Override
     public String getName(){
         if(this.name != null){
-            return String.format("[WhiteboardClient: \"%s\"]", this.name);
+            return this.name;
         }else{
             return String.format("[WhiteboardClient: %d]", this.hashCode());
         }
@@ -98,13 +108,18 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
      * Listeners get the shapes passed to the WhiteboardClient by a WhiteboardServer from a callback.
      * @param listener
      */
-    public void addItemListener(IWhiteboardItemListener listener){
-        this.listeners.add(listener);
+    public void addItemListener(IWhiteboardItemListener listener) {
+        this.itemListeners.add(listener);
+    }
+
+    @Override
+    public void addClientListener(IWhiteboardClientListener listener) throws RemoteException {
+        this.clientListeners.add(listener);
     }
 
     //Dispatches shapes to Whiteboard Item Listeners (typically GUI).
     public void retrieveShape(IWhiteboardItem shape) throws RemoteException{
-        for(IWhiteboardItemListener listener : this.listeners){
+        for(IWhiteboardItemListener listener : this.itemListeners){
             listener.receiveShape(shape);
         }
     }
@@ -113,9 +128,15 @@ public class WhiteboardClient extends UnicastRemoteObject implements IWhiteboard
      * Tells all IWhoteboardItemListeners to resync their shapes.
      * @throws RemoteException
      */
-    public void resync() throws RemoteException{
-        for(IWhiteboardItemListener listener : this.listeners){
-            listener.resync();
+    public void resyncShapes() throws RemoteException{
+        for(IWhiteboardItemListener listener : this.itemListeners){
+            listener.resyncShapes();
+        }
+    }
+
+    public void resyncClientNameList() throws RemoteException{
+        for(IWhiteboardClientListener listener : this.clientListeners){
+            listener.updateClientList(this.getContext().getClientNameList());
         }
     }
 

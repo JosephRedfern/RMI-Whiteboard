@@ -12,4 +12,7 @@ public interface IWhiteboardServer extends Remote{
     public void addShape(IWhiteboardClient client, Shape shape, Color colour) throws RemoteException;
     public ArrayList<IWhiteboardItem> getShapes() throws RemoteException;
     public void removeItemsByClient(IWhiteboardClient client) throws RemoteException;
+    public ArrayList<String> getClientNameList() throws RemoteException;
+    public void globalClientNameListResync() throws RemoteException;
+    public void clearAllShapes(IWhiteboardClient requester) throws RemoteException;
 }

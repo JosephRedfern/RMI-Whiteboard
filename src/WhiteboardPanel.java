@@ -15,7 +15,7 @@ public class WhiteboardPanel extends JPanel{
     public WhiteboardPanel(ArrayList<IWhiteboardItem> shapes){
         this.shapes = shapes;
         Random r = new Random();
-        this.setBackground(new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()));
+        this.setBackground(new Color(0xFF, 0xFF, 0xFF));
    }
 
     @Override
@@ -24,7 +24,7 @@ public class WhiteboardPanel extends JPanel{
         Graphics2D g2 = (Graphics2D)g;
         for(IWhiteboardItem item : this.shapes){
             try {
-                System.out.printf("Drawing shape by %s at %s%n", item.getOwner(), item.getCreationTime());
+                //System.out.printf("Drawing shape by %s at %s%n", item.getOwner(), item.getCreationTime());
                 g2.setColor(item.getColour());
                 g2.fill(item.getShape());
             }catch(RemoteException e){

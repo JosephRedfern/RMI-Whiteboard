@@ -11,4 +11,7 @@ public interface ICommunicationContext extends Remote{
     public void addShape(Shape shape, Color colour) throws RemoteException;
     public ArrayList<IWhiteboardItem> getShapes() throws RemoteException;
     public void clearShapes() throws RemoteException;
+    public void clearAllShapes() throws RemoteException;
+    public ArrayList<String> getClientNameList() throws RemoteException;
+    public void notifyOfClientNameChange() throws RemoteException;
 }

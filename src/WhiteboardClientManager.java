@@ -10,11 +10,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WhiteboardClientManager implements Iterable<IWhiteboardClient>{
     private Set<IWhiteboardClient> clients;
+    private WhiteboardServer server;
 
 
-    public WhiteboardClientManager(){
+    public WhiteboardClientManager(WhiteboardServer server){
         //Use a map-ified ConcurrentHashMap, so that we can be thread safe.
         this.clients = Collections.newSetFromMap(new ConcurrentHashMap<IWhiteboardClient, Boolean>());
+        this.server = server;
         new Thread(new ClientWatchdog(this)).start();
     }
 
@@ -24,6 +26,7 @@ public class WhiteboardClientManager implements Iterable<IWhiteboardClient>{
      */
     public void addClient(IWhiteboardClient client){
         this.clients.add(client);
+        this.server.globalClientNameListResync();
     }
 
     /***
@@ -49,6 +52,7 @@ public class WhiteboardClientManager implements Iterable<IWhiteboardClient>{
      */
     public void removeClient(IWhiteboardClient client){
         this.clients.remove(client);
+        this.server.globalClientNameListResync();
     }
 
     public Iterator<IWhiteboardClient> iterator(){

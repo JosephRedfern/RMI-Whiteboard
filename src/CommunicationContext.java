@@ -55,4 +55,16 @@ public class CommunicationContext extends UnicastRemoteObject implements ICommun
         server.removeItemsByClient(client);
     }
 
+    public ArrayList<String> getClientNameList() throws RemoteException{
+        return server.getClientNameList();
+    }
+
+    public void notifyOfClientNameChange() throws RemoteException{
+        this.server.globalClientNameListResync();
+    }
+
+    public void clearAllShapes() throws RemoteException{
+        this.server.clearAllShapes(client);
+    }
+
 }
